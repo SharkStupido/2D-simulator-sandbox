@@ -1,0 +1,10 @@
+{
+  "name": "grainfall",
+  "version": "1.0.0",
+  "description": "A 2D falling-sand sandbox game for the browser.",
+  "private": true,
+  "scripts": {
+    "test": "node tests/sim.test.js",
+    "start": "npx serve ."
+  }
+}

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Grainfall</title>
+  <meta name="description" content="A falling-sand sandbox: pour, burn, melt, freeze, wire up and blow up over forty materials.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Chivo:wght@400;500;700&family=Chivo+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="bar">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <h1>Grainfall</h1>
+      </div>
+
+      <div class="group" aria-label="Playback">
+        <button type="button" class="btn icon" id="btn-pause" title="Pause (Space)" aria-label="Pause">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect class="i-pause" x="3.5" y="3" width="3" height="10" rx="0.5"/><rect class="i-pause" x="9.5" y="3" width="3" height="10" rx="0.5"/><path class="i-play" d="M4.5 2.8v10.4L13 8z"/></svg>
+        </button>
+        <button type="button" class="btn icon" id="btn-step" title="Advance one tick (.)" aria-label="Advance one tick">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2.8v10.4L10 8z"/><rect x="11" y="3" width="2.2" height="10" rx="0.5"/></svg>
+        </button>
+        <button type="button" class="btn mono" id="btn-speed" title="Simulation speed">1×</button>
+      </div>
+
+      <div class="group" aria-label="View">
+        <button type="button" class="btn toggle" id="btn-heat" aria-pressed="false" title="Thermal camera (T)">Thermal</button>
+        <button type="button" class="btn toggle" id="btn-glow" aria-pressed="true" title="Glow effect (G)">Glow</button>
+      </div>
+
+      <div class="group" aria-label="World">
+        <label class="select" for="scene"><span>Scene</span><select id="scene"></select></label>
+        <label class="select" for="grain"><span>Grain</span>
+          <select id="grain">
+            <option value="fine">Fine</option>
+            <option value="normal" selected>Normal</option>
+            <option value="coarse">Coarse</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="group" aria-label="File">
+        <button type="button" class="btn" id="btn-save" title="Save to this browser">Save</button>
+        <button type="button" class="btn" id="btn-load" title="Load your saved world">Load</button>
+        <button type="button" class="btn danger" id="btn-clear" title="Empty the world">Clear</button>
+      </div>
+
+      <div class="stats" aria-live="off">
+        <span id="stat-cells">0 grains</span>
+        <span id="stat-fps">– fps</span>
+      </div>
+      <button type="button" class="btn icon" id="btn-help" title="Controls and tips (?)" aria-label="Controls and tips" aria-expanded="false" aria-controls="help">?</button>
+    </header>
+
+    <main class="stage" id="stage">
+      <div class="viewport" id="viewport">
+        <canvas id="world"></canvas>
+        <canvas id="glow" aria-hidden="true"></canvas>
+        <div class="cursor" id="cursor" hidden></div>
+        <div class="readout" id="readout">Pick a material below and drag to pour</div>
+        <div class="toast" id="toast" role="status" hidden></div>
+      </div>
+    </main>
+
+    <footer class="dock">
+      <div class="tools">
+        <div class="seg" role="radiogroup" aria-label="Tool" id="tools">
+          <button type="button" role="radio" data-tool="draw" aria-checked="true" title="Draw with the selected material (D)">Draw</button>
+          <button type="button" role="radio" data-tool="erase" aria-checked="false" title="Erase (E, or right-click)">Erase</button>
+          <button type="button" role="radio" data-tool="heat" aria-checked="false" title="Heat things up (H)">Heat</button>
+          <button type="button" role="radio" data-tool="cool" aria-checked="false" title="Cool things down (C)">Cool</button>
+          <button type="button" role="radio" data-tool="pick" aria-checked="false" title="Pick a material from the world (P)">Pick</button>
+        </div>
+        <label class="size" for="brush"><span>Brush</span>
+          <input type="range" id="brush" min="1" max="30" value="4">
+          <output id="brush-out" for="brush">4</output>
+        </label>
+        <button type="button" class="btn toggle" id="btn-replace" aria-pressed="false" title="Paint over existing material (R)">Replace</button>
+        <div class="selected" id="selected">
+          <span class="sw" id="sel-swatch"></span>
+          <strong id="sel-name">Sand</strong>
+          <span class="desc" id="sel-desc"></span>
+        </div>
+      </div>
+      <nav class="tabs" id="tabs" role="tablist" aria-label="Material groups"></nav>
+      <div class="elements" id="elements" role="listbox" aria-label="Materials"></div>
+    </footer>
+
+    <section class="help" id="help" hidden aria-label="Controls and tips">
+      <div class="help-card">
+        <header>
+          <h2>How to play</h2>
+          <button type="button" class="btn icon" id="btn-help-close" aria-label="Close">×</button>
+        </header>
+        <div class="help-cols">
+          <div>
+            <h3>Drawing</h3>
+            <dl>
+              <dt>Drag</dt><dd>Pour the selected material</dd>
+              <dt>Right-drag</dt><dd>Erase</dd>
+              <dt>Middle-click</dt><dd>Pick the material under the cursor</dd>
+              <dt>Scroll · [ ]</dt><dd>Brush size</dd>
+              <dt>R</dt><dd>Replace mode: paint over what is there</dd>
+            </dl>
+          </div>
+          <div>
+            <h3>Keys</h3>
+            <dl>
+              <dt>Space</dt><dd>Pause or resume</dd>
+              <dt>.</dt><dd>Advance one tick</dd>
+              <dt>D E H C P</dt><dd>Draw, erase, heat, cool, pick</dd>
+              <dt>T · G</dt><dd>Thermal camera, glow</dd>
+            </dl>
+          </div>
+          <div>
+            <h3>Try this</h3>
+            <ul>
+              <li>Pour lava into water to make obsidian.</li>
+              <li>Melt sand with the heat tool, then let it set into glass.</li>
+              <li>Connect a battery to lamps with a metal wire.</li>
+              <li>Lay a fuse to some TNT and light it with fire.</li>
+              <li>Drop seeds on dirt and watch them flower.</li>
+              <li>Touch a clone block with water to make a spring.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/elements.js"></script>
+  <script src="js/sim.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/scenes.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
