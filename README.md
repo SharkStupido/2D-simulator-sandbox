@@ -12,6 +12,14 @@ No build step and no dependencies: open `index.html` and play.
 - **Local server:** `npx serve .` or `python3 -m http.server`, then visit the printed URL.
 - **Hosting:** the folder is a static site, so it works as-is on GitHub Pages or any static host.
 
+### Windows desktop app
+
+There is also a desktop edition written in Python with tkinter, in
+[`desktop/`](desktop/README.md). Run it with `python desktop/run.py`, or
+double-click `desktop/start_windows.bat`. You can also download a ready-made
+`Grainfall.exe` from the **Windows app** run under the repository's Actions
+tab.
+
 ## Controls
 
 | Input | Action |

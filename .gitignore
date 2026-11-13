@@ -1,2 +1,9 @@
 node_modules/
 .DS_Store
+__pycache__/
+*.pyc
+.venv/
+desktop/build/
+desktop/dist/
+desktop/*.spec
+desktop/grainfall.ico
